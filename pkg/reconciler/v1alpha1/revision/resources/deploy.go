@@ -51,17 +51,6 @@ var (
 		MountPath: "/var/log",
 	}
 
-	fluentdConfigMapVolume = corev1.Volume{
-		Name: fluentdConfigMapVolumeName,
-		VolumeSource: corev1.VolumeSource{
-			ConfigMap: &corev1.ConfigMapVolumeSource{
-				LocalObjectReference: corev1.LocalObjectReference{
-					Name: "fluentd-varlog-config",
-				},
-			},
-		},
-	}
-
 	userPorts = []corev1.ContainerPort{{
 		Name:          userPortName,
 		ContainerPort: int32(userPort),
@@ -94,6 +83,19 @@ var (
 		},
 	}
 )
+
+func getFluentdConfigMapVolume(rev *v1alpha1.Revision) *corev1.Volume {
+	return &corev1.Volume{
+		Name: fluentdConfigMapVolumeName,
+		VolumeSource: corev1.VolumeSource{
+			ConfigMap: &corev1.ConfigMapVolumeSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: names.FluentdConfigMap(rev),
+				},
+			},
+		},
+	}
+}
 
 func rewriteUserProbe(p *corev1.Probe) {
 	if p == nil {
@@ -137,7 +139,7 @@ func makePodSpec(rev *v1alpha1.Revision, loggingConfig *logging.Config, observab
 	// Add Fluentd sidecar and its config map volume if var log collection is enabled.
 	if observabilityConfig.EnableVarLogCollection {
 		podSpec.Containers = append(podSpec.Containers, *makeFluentdContainer(rev, observabilityConfig))
-		podSpec.Volumes = append(podSpec.Volumes, fluentdConfigMapVolume)
+		podSpec.Volumes = append(podSpec.Volumes, *getFluentdConfigMapVolume(rev))
 	}
 
 	return podSpec

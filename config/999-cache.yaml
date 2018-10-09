@@ -29,4 +29,4 @@ metadata:
   namespace: knative-serving
 spec:
   # Cache the fluentd sidecar image
-  image: k8s.gcr.io/fluentd-elasticsearch:v2.0.4
+  image: gcr.io/conliu-gke-dev/fluentd-stackdriver:original
